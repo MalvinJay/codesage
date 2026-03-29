@@ -1,0 +1,22 @@
+{
+  "name": "codesage-evals",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "eval": "npm run build && node dist/run.js",
+    "eval:ci": "npm run build && node dist/run.js --ci",
+    "generate-synthetic": "npm run build && node dist/generate-synthetic.js"
+  },
+  "dependencies": {
+    "braintrust": "^0.0.154",
+    "autoevals": "^0.0.50",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.3",
+    "ts-node": "^10.9.2"
+  }
+}

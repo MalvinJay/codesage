@@ -1,0 +1,33 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+appsettings.Production.json
+*.pfx
+*.p12
+
+# Node / React
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+
+# Evals
+evals/node_modules/
+evals/dist/
+
+# Docker
+infra/docker/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp

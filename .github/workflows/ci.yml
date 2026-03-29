@@ -1,0 +1,198 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20'
+
+jobs:
+
+  # ── 1. Build & test the .NET API ─────────────────────────────────────────────
+  api-build:
+    name: API build + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      - name: Build Docker image
+        run: docker build -t codesage-api:${{ github.sha }} .
+
+  # ── 2. Lint & type-check the React frontend ───────────────────────────────────
+  web-build:
+    name: Web build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run build
+
+  # ── 3. Eval quality gate ─────────────────────────────────────────────────────
+  # Spins up the API against a test Weaviate instance and runs the full eval suite.
+  # Blocks merge if pass rate < PASS_RATE_THRESHOLD.
+  eval-gate:
+    name: Eval quality gate
+    runs-on: ubuntu-latest
+    needs: [api-build, web-build]
+    # Only run on PRs that touch prompts or agent code
+    if: |
+      github.event_name == 'pull_request' &&
+      (
+        contains(github.event.pull_request.title, '[prompt]') ||
+        contains(github.event.pull_request.title, '[agent]') ||
+        true
+      )
+
+    services:
+      weaviate:
+        image: cr.weaviate.io/semitechnologies/weaviate:1.26.1
+        ports:
+          - 8080:8080
+        env:
+          QUERY_DEFAULTS_LIMIT: 25
+          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+          PERSISTENCE_DATA_PATH: /var/lib/weaviate
+          DEFAULT_VECTORIZER_MODULE: none
+          ENABLE_MODULES: ''
+          CLUSTER_HOSTNAME: node1
+
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: codesage
+          POSTGRES_USER: codesage
+          POSTGRES_PASSWORD: codesage_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Start API (background)
+        working-directory: apps/api
+        env:
+          ASPNETCORE_URLS: http://localhost:5000
+          ConnectionStrings__Feedback: >-
+            Host=localhost;Port=5432;Database=codesage;
+            Username=codesage;Password=codesage_test
+          Weaviate__Endpoint: http://localhost:8080
+          Groq__ApiKey: ${{ secrets.GROQ_API_KEY }}
+          Features__UseProdLlm: false
+          Features__RequireApiKey: false
+        run: |
+          dotnet run --project CodeSage.Api --configuration Release &
+          echo "API_PID=$!" >> $GITHUB_ENV
+          # Wait for health check
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5000/health && break || sleep 2
+          done
+
+      - name: Install eval deps
+        working-directory: evals
+        run: npm ci
+
+      - name: Run eval suite
+        working-directory: evals
+        env:
+          CODESAGE_API_URL: http://localhost:5000
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: npm run eval:ci
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ github.sha }}
+          path: evals/eval-results.json
+
+      - name: Post eval summary to PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const results = JSON.parse(fs.readFileSync('evals/eval-results.json', 'utf8'))
+            const icon = results.gatePass ? '✅' : '❌'
+            const body = `## ${icon} Eval quality gate
+            | Metric | Value |
+            |---|---|
+            | Pass rate | ${(results.passRate * 100).toFixed(1)}% |
+            | Passed | ${results.passed}/${results.total} |
+            | Threshold | ${(results.threshold * 100).toFixed(0)}% |
+            | Gate | ${results.gatePass ? 'PASSED' : 'FAILED'} |
+            ${results.failures.length ? '\n**Failures:**\n' + results.failures.map(f => `- ${f}`).join('\n') : ''}
+            `
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            })
+
+  # ── 4. Deploy to Railway (free tier) on main merge ────────────────────────────
+  deploy:
+    name: Deploy API
+    runs-on: ubuntu-latest
+    needs: [api-build, web-build, eval-gate]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        working-directory: apps/api
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service codesage-api

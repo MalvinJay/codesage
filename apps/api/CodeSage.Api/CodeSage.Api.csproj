@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CodeSage.Api</RootNamespace>
+    <AssemblyName>CodeSage.Api</AssemblyName>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <NoWarn>$(NoWarn);SKEXP0001;SKEXP0010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Semantic Kernel orchestration -->
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.21.1" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.21.1" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.21.1-alpha" />
+
+    <!-- Weaviate vector DB client -->
+    <PackageReference Include="WeaviateNET" Version="1.20.5" />
+
+    <!-- PostgreSQL via EF Core -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <!-- OpenTelemetry / Traceloop observability -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
+
+    <!-- HTTP client + streaming -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4" />
+
+    <!-- GitHub API client -->
+    <PackageReference Include="Octokit" Version="13.0.1" />
+  </ItemGroup>
+
+</Project>

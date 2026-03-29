@@ -1,0 +1,21 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "Microsoft.SemanticKernel": "Debug"
+    }
+  },
+  "Features": {
+    "UseProdLlm": false,
+    "RequireApiKey": false
+  },
+  "Groq": {
+    "ApiKey": "YOUR_GROQ_API_KEY_HERE"
+  },
+  "GitHub": {
+    "Token": "YOUR_GITHUB_PAT_HERE"
+  },
+  "Traceloop": {
+    "ApiKey": "YOUR_TRACELOOP_KEY_HERE"
+  }
+}
