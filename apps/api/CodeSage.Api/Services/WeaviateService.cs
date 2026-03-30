@@ -125,7 +125,7 @@ public class WeaviateService
                   limit: {{limit}}
                   {{whereClause}}
                 ) {
-                  filePath content _additional { score }
+                  filePath content _additional { distance }
                 }
               }
             }
@@ -133,7 +133,12 @@ public class WeaviateService
 
         var payload = new { query = gql };
         var response = await _http.PostAsJsonAsync($"{_baseUrl}/v1/graphql", payload, JsonOpts, ct);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException(
+                $"Weaviate query failed with {(int)response.StatusCode} ({response.ReasonPhrase}). Body: {body}");
+        }
 
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
         var chunks = new List<SourceChunk>();
@@ -145,7 +150,7 @@ public class WeaviateService
             chunks.Add(new SourceChunk(
                 FilePath: item.GetProperty("filePath").GetString()!,
                 Content: item.GetProperty("content").GetString()!,
-                Score: item.GetProperty("_additional").GetProperty("score").GetDouble()
+                Score: item.GetProperty("_additional").GetProperty("distance").GetDouble()
             ));
         }
 

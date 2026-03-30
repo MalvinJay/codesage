@@ -60,23 +60,24 @@ else
         endpoint: new Uri("https://api.groq.com/openai/v1"));
 
     // Local Ollama for embeddings (nomic-embed-text — free, no API key)
-    if (hasOpenAiApiKey)
-    {
-        builder.Services.AddOpenAITextEmbeddingGeneration(
-            modelId: "text-embedding-3-small",
-            apiKey: openAiApiKey!);
-    }
-    else
-    {
-        builder.Services.AddOpenAITextEmbeddingGeneration(
-            modelId: "nomic-embed-text",
-            openAIClient: new OpenAIClient(
-                new ApiKeyCredential("ollama"),
-                new OpenAIClientOptions
-                {
-                    Endpoint = new Uri("http://localhost:11434/v1")
-                }));
-    }
+    builder.Services.AddOpenAITextEmbeddingGeneration(
+        modelId: "nomic-embed-text",
+        openAIClient: new OpenAIClient(
+            new ApiKeyCredential("ollama"),
+            new OpenAIClientOptions
+            {
+                Endpoint = new Uri("http://localhost:11434/v1")
+            }));    
+    // if (hasOpenAiApiKey)
+    // {
+    //     builder.Services.AddOpenAITextEmbeddingGeneration(
+    //         modelId: "text-embedding-3-small",
+    //         apiKey: openAiApiKey!);
+    // }
+    // else
+    // {
+
+    // }
 }
 
 // ── Application services ─────────────────────────────────────────────────────

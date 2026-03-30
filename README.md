@@ -19,6 +19,7 @@ codesage/
 ## Quick start (local, fully free)
 
 ### Prerequisites
+
 - Docker + Docker Compose
 - .NET 8 SDK
 - Node 20+
@@ -32,6 +33,7 @@ docker compose up -d
 ```
 
 This starts:
+
 - **Weaviate** on `localhost:8080` (vector DB)
 - **PostgreSQL** on `localhost:5433` (feedback store)
 
@@ -48,6 +50,7 @@ cp apps/api/CodeSage.Api/appsettings.Development.json.example \
 ```bash
 cd apps/api
 dotnet restore
+dotnet build
 dotnet run --project CodeSage.Api/CodeSage.Api.csproj
 # API usually live at http://localhost:5000
 ```
@@ -77,25 +80,26 @@ React UI → .NET API Gateway → Semantic Kernel Planner
                                     ├── KnowledgeAgent    → Weaviate RAG
                                     └── PrGenerationAgent → GitHub API + LLM
 
-Observability: every LLM call traced via Traceloop (OpenTelemetry)
+Observability: Every LLM call traced via Traceloop (OpenTelemetry)
 Eval gate:     Braintrust scores all cases in CI before merge
 ```
 
 ## Environment variables
 
-| Variable | Description | Example |
-|---|---|---|
-| `Groq__ApiKey` | Groq API key (free LLM) | `gsk_...` |
-| `OpenAI__ApiKey` | OpenAI key (optional, swap for GPT-4o) | `sk-...` |
-| `Weaviate__Endpoint` | Weaviate URL | `http://localhost:8080` |
-| `GitHub__Token` | GitHub PAT for PR/repo access | `ghp_...` |
-| `ConnectionStrings__Feedback` | Postgres connection string | see appsettings |
-| `Traceloop__ApiKey` | Traceloop key (free tier) | `tlp_...` |
-| `Braintrust__ApiKey` | Braintrust key (free tier) | `...` |
+| Variable                      | Description                            | Example                 |
+| ----------------------------- | -------------------------------------- | ----------------------- |
+| `Groq__ApiKey`                | Groq API key (free LLM)                | `gsk_...`               |
+| `OpenAI__ApiKey`              | OpenAI key (optional, swap for GPT-4o) | `sk-...`                |
+| `Weaviate__Endpoint`          | Weaviate URL                           | `http://localhost:8080` |
+| `GitHub__Token`               | GitHub PAT for PR/repo access          | `ghp_...`               |
+| `ConnectionStrings__Feedback` | Postgres connection string             | see appsettings         |
+| `Traceloop__ApiKey`           | Traceloop key (free tier)              | `tlp_...`               |
+| `Braintrust__ApiKey`          | Braintrust key (free tier)             | `...`                   |
 
 ## Promoting to production
 
 Swap each service in `appsettings.Production.json`:
+
 - Groq → OpenAI GPT-4o
 - Local Weaviate → Weaviate Cloud
 - Local Postgres → Supabase / AWS RDS
@@ -107,6 +111,6 @@ The application code is identical across tiers — only config changes.
 ## Phase roadmap
 
 - [x] Phase 1 — Scaffold (this PR)
-- [ ] Phase 2 — RAG pipeline (ingestion + retrieval)
+- [x] Phase 2 — RAG pipeline (ingestion + retrieval)
 - [ ] Phase 3 — Semantic Kernel agents (review, knowledge, PR gen)
 - [ ] Phase 4 — Eval pipeline + CI gate
