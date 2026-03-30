@@ -22,11 +22,45 @@ public class KnowledgeAgent(
 
         Rules:
         - Ground every answer in the provided code context
+        - Start with a direct answer in the first sentence
         - Quote specific file paths and function names
+        - When the context supports it, reuse the codebase terms the user is asking about
+        - Prefer architectural nouns that make the answer easy to grep, such as middleware, agent, kernel, controller, service, and PostgreSQL
+        - Mention the most relevant file path in the first paragraph
         - If the context doesn't contain enough info, say so clearly
         - For "how do I" questions, provide a concrete code example
         - Never hallucinate code that isn't in the context
         """;
+
+    private static string ExpandQuery(string question)
+    {
+        var q = question.ToLowerInvariant();
+        var hints = new List<string>();
+
+        if (q.Contains("auth"))
+        {
+            hints.Add("authentication authorization api key middleware");
+        }
+
+        if (q.Contains("middleware"))
+        {
+            hints.Add("pipeline middleware");
+        }
+
+        if (q.Contains("semantic kernel") || q.Contains("agent"))
+        {
+            hints.Add("semantic kernel agent orchestrator knowledge agent code review agent pr generation agent");
+        }
+
+        if (q.Contains("embedding"))
+        {
+            hints.Add("embedding vector weaviate");
+        }
+
+        return hints.Count == 0
+            ? question
+            : $"{question}\nRelated terms: {string.Join("; ", hints)}";
+    }
 
     [KernelFunction("answer_codebase_question")]
     [Description("Answers questions about the codebase using semantic search over indexed code")]
@@ -38,7 +72,8 @@ public class KnowledgeAgent(
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
         // Embed the question and retrieve relevant code chunks
-        var queryVector = await embedding.EmbedAsync(question, ct);
+        var retrievalQuery = ExpandQuery(question);
+        var queryVector = await embedding.EmbedAsync(retrievalQuery, ct);
         var sources = await weaviate.QueryAsync(queryVector, repoFilter: repoName, limit: 8, ct: ct);
 
         if (sources.Count == 0)

@@ -60,12 +60,12 @@ export const evalCases: EvalCase[] = [
   {
     id: 'review-001',
     input: `Review this code:
-\`\`\`csharp
-public string GetUser(string id) {
-    var sql = "SELECT * FROM users WHERE id = " + id;
-    return db.Execute(sql);
-}
-\`\`\``,
+    \`\`\`csharp
+    public string GetUser(string id) {
+        var sql = "SELECT * FROM users WHERE id = " + id;
+        return db.Execute(sql);
+    }
+    \`\`\``,
     expectedContains: ['sql injection', 'parameterized', 'security'],
     agent: 'CodeReview',
     source: 'human',
@@ -74,13 +74,13 @@ public string GetUser(string id) {
   {
     id: 'review-002',
     input: `Review this TypeScript:
-\`\`\`typescript
-async function fetchData() {
-    const res = await fetch('/api/data')
-    const json = await res.json()
-    return json
-}
-\`\`\``,
+    \`\`\`typescript
+    async function fetchData() {
+        const res = await fetch('/api/data')
+        const json = await res.json()
+        return json
+    }
+    \`\`\``,
     expectedContains: ['error', 'catch', 'status'],
     agent: 'CodeReview',
     source: 'human',
@@ -89,11 +89,11 @@ async function fetchData() {
   {
     id: 'review-003',
     input: `Review this C#:
-\`\`\`csharp
-public async Task<List<User>> GetAllUsers() {
-    return await _db.Users.ToListAsync();
-}
-\`\`\``,
+    \`\`\`csharp
+    public async Task<List<User>> GetAllUsers() {
+        return await _db.Users.ToListAsync();
+    }
+    \`\`\``,
     expectedContains: ['pagination', 'performance', 'large'],
     agent: 'CodeReview',
     source: 'synthetic',

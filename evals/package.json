@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "eval": "npm run build && node dist/run.js",
-    "eval:ci": "npm run build && node dist/run.js --ci",
-    "generate-synthetic": "npm run build && node dist/generate-synthetic.js"
+    "eval": "npm run build && node --env-file=.env dist/run.js",
+    "eval:ci": "npm run build && node --env-file=.env dist/run.js --ci",
+    "generate-synthetic": "npm run build && node --env-file=.env dist/generate-synthetic.js"
   },
   "dependencies": {
     "braintrust": "^0.0.154",
