@@ -295,9 +295,9 @@ The application code is identical across tiers — only config changes.
 - Keep real API keys only in local env files, your shell environment, or deployment platform secrets.
 - If a secret has already been pushed to a public repo, rotate it immediately even after removing it from git.
 
-## Phase roadmap
+## Major Phases Involed!
 
 - [x] Phase 1 — Scaffold (this PR)
 - [x] Phase 2 — RAG pipeline (ingestion + retrieval)
-- [ ] Phase 3 — Semantic Kernel agents (review, knowledge, PR gen)
-- [ ] Phase 4 — Eval pipeline + CI gate
+- [x] Phase 3 — Semantic Kernel agents (review, knowledge, PR gen)
+- [x] Phase 4 — Eval pipeline + CI gate
