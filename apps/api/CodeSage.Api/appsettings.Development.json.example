@@ -9,13 +9,22 @@
     "UseProdLlm": false,
     "RequireApiKey": false
   },
+  "ConnectionStrings": {
+    "Feedback": "Host=localhost;Port=5433;Database=codesage;Username=codesage;Password=SET_A_LOCAL_PASSWORD"
+  },
   "Groq": {
     "ApiKey": "YOUR_GROQ_API_KEY_HERE"
   },
   "GitHub": {
     "Token": "YOUR_GITHUB_PAT_HERE"
   },
+  "OpenAI": {
+    "ApiKey": "YOUR_OPENAI_API_KEY_HERE"
+  },
   "Traceloop": {
     "ApiKey": "YOUR_TRACELOOP_KEY_HERE"
+  },
+  "Braintrust": {
+    "ApiKey": "YOUR_BRAINTRUST_API_KEY_HERE"
   }
 }

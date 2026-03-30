@@ -29,6 +29,8 @@ codesage/
 
 ```bash
 cd infra/docker
+cp .env.example .env
+# Edit .env and choose a local-only Postgres password
 docker compose up -d
 ```
 
@@ -42,7 +44,14 @@ This starts:
 ```bash
 cp apps/api/CodeSage.Api/appsettings.Development.json.example \
    apps/api/CodeSage.Api/appsettings.Development.json
-# Edit and fill in your Groq API key + other values
+# Edit and fill in your local secrets
+```
+
+For the frontend and evals packages, create local env files from the checked-in examples:
+
+```bash
+cp apps/web/.env.example apps/web/.env
+cp evals/.env.example evals/.env
 ```
 
 ### 3. Run the API
@@ -92,7 +101,7 @@ Eval gate:     Braintrust scores all cases in CI before merge
 | `OpenAI__ApiKey`              | OpenAI key (optional, swap for GPT-4o) | `sk-...`                |
 | `Weaviate__Endpoint`          | Weaviate URL                           | `http://localhost:8080` |
 | `GitHub__Token`               | GitHub PAT for PR/repo access          | `ghp_...`               |
-| `ConnectionStrings__Feedback` | Postgres connection string             | see appsettings         |
+| `ConnectionStrings__Feedback` | Postgres connection string             | set locally only        |
 | `Traceloop__ApiKey`           | Traceloop key (free tier)              | `tlp_...`               |
 | `Braintrust__ApiKey`          | Braintrust key (free tier)             | `...`                   |
 
@@ -107,6 +116,12 @@ Swap each service in `appsettings.Production.json`:
 - Vercel → AWS S3 + CloudFront
 
 The application code is identical across tiers — only config changes.
+
+## Secret hygiene
+
+- Never commit `.env` files or `appsettings.Development.json`.
+- Keep real API keys only in local env files, your shell environment, or deployment platform secrets.
+- If a secret has already been pushed to a public repo, rotate it immediately even after removing it from git.
 
 ## Phase roadmap
 

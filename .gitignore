@@ -13,8 +13,13 @@ appsettings.Production.json
 node_modules/
 dist/
 .env
+.env.*
 .env.local
 .env.*.local
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
 
 # Evals
 evals/node_modules/
@@ -22,6 +27,7 @@ evals/dist/
 
 # Docker
 infra/docker/data/
+infra/docker/.env
 
 # OS
 .DS_Store
