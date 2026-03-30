@@ -45,6 +45,10 @@ public class GitHubService
         string owner, string repo, string path = "", string branch = "main",
         CancellationToken ct = default)
     {
+        // Octokit throws if path is empty string — use the no-path overload for root
+        if (string.IsNullOrEmpty(path))
+            return await _client.Repository.Content.GetAllContentsByRef(owner, repo, branch);
+
         return await _client.Repository.Content.GetAllContentsByRef(
             owner, repo, path, branch);
     }
